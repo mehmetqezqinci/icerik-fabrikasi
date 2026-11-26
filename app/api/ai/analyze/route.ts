@@ -27,7 +27,7 @@ export async function POST() {
     const prompt = buildPerformanceAnalysisPrompt(rows, profile);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.responses.create({
-      model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6",
+      model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6.2-sol",
       input: [
         { role: "system", content: prompt.system },
         { role: "user", content: prompt.user }
@@ -35,11 +35,11 @@ export async function POST() {
     });
     const result = response.output_text;
     const { data: saved, error: saveError } = await supabase.from("ai_analyses").insert({
-      user_id: user.id, analysis_type: "instagram_performance", model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6",
+      user_id: user.id, analysis_type: "instagram_performance", model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6.2-sol",
       prompt_version: "v1", input_window: { rows: rows.length }, result: { text: result }
     }).select("id").single();
     if (saveError) throw saveError;
-    return NextResponse.json({ analysisId: saved.id, model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6", rowsAnalyzed: rows.length, analysis: result });
+    return NextResponse.json({ analysisId: saved.id, model: process.env.OPENAI_ANALYSIS_MODEL || "gpt-6.2-sol", rowsAnalyzed: rows.length, analysis: result });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "AI analizi başarısız." }, { status: 500 });
   }
