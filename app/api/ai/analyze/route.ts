@@ -22,8 +22,10 @@ export async function POST() {
       ...r, published_at: r.content_items?.published_at, caption: r.content_items?.caption,
       permalink: r.content_items?.permalink, content_type: r.content_items?.content_type
     }));
-    const { data: memories } = await supabase.from("brand_memory").select("memory_key,memory_value").eq("user_id", user.id);
-    const profile = Object.fromEntries((memories || []).map((m: any) => [m.memory_key, m.memory_value]));
+    const { data: profileMemory } = await supabase.from("brand_memory").select("memory_value").eq("user_id", user.id).eq("memory_key", "org_profile").maybeSingle();
+    const rawProfile = (profileMemory?.memory_value || {}) as Record<string, unknown>;
+    const safeKeys = ["orgName","location","mission","beneficiaries","services","audience","tone","differentiators","platforms","topContent","currentFollowers","targetFollowers","teamCapacity","equipment","weeklyOutput","rules","umut"];
+    const profile = Object.fromEntries(safeKeys.filter((key) => typeof rawProfile[key] === "string").map((key) => [key, rawProfile[key]]));
     const prompt = buildPerformanceAnalysisPrompt(rows, profile);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const response = await openai.responses.create({
