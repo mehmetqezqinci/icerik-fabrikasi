@@ -164,7 +164,7 @@ do $$
 declare t text;
 begin
   foreach t in array array[
-    'profiles','social_accounts','content_items','content_metric_snapshots',
+    'social_accounts','content_items','content_metric_snapshots',
     'account_metric_snapshots','field_activities','content_ideas','content_scripts',
     'experiments','ai_analyses','brand_memory','sync_runs'
   ] loop
