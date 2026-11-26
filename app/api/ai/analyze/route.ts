@@ -1,15 +1,13 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseRequestClient } from "@/lib/supabase/server";
 import { buildPerformanceAnalysisPrompt, type PerformanceRow } from "@/lib/ai/performance-prompt";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: "Önce yönetici girişi yapmalısınız." }, { status: 401 });
+    const { supabase, user } = await createSupabaseRequestClient(request);
     if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "OPENAI_API_KEY sunucu ortamında tanımlı değil." }, { status: 503 });
 
     const { data: metricRows, error } = await supabase.from("content_metric_snapshots")
