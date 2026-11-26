@@ -12,6 +12,8 @@ export default function DashboardPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [analysis, setAnalysis] = useState("");
+  const [syncFrom, setSyncFrom] = useState("2026-09-01");
+  const [syncTo, setSyncTo] = useState("2026-11-26");
 
   async function authHeaders() {
     const supabase = createSupabaseBrowserClient();
@@ -45,6 +47,18 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error(result.error || "Metricool aktarımı başarısız.");
       setMessage("Metricool: " + result.contentSaved + " içerik ve " + result.accountSnapshotsSaved + " hesap ölçümü aktarıldı.");
     } catch (e) { setMessage(e instanceof Error ? e.message : "Metricool aktarımı başarısız."); }
+    finally { setBusy(""); }
+  }
+
+  async function syncMetricool() {
+    setBusy("sync"); setMessage("");
+    try {
+      const headers = await authHeaders();
+      const response = await fetch("/api/metricool/sync", { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ from: syncFrom, to: syncTo }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Metricool senkronizasyonu başarısız.");
+      setMessage("Metricool senkronizasyonu tamamlandı: " + result.posts + " gönderi, " + result.reels + " Reels bulundu; " + result.saved + " kayıt işlendi.");
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Metricool senkronizasyonu başarısız."); }
     finally { setBusy(""); }
   }
 
@@ -87,7 +101,14 @@ export default function DashboardPage() {
           <div className="text-xs tracking-widest text-[var(--gold)]">02 · METRICOOL</div>
           <h2 className="mt-3 text-xl font-semibold">Gerçek performans verilerini içe aktar</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Metricool verilerini V6'nın tanımlı JSON biçiminde yükle. İçerik metrikleri ve günlük hesap ölçümleri ayrı saklanır.</p>
-          <input type="file" accept=".json,application/json" onChange={(e) => setMetricFile(e.target.files?.[0] || null)} className="mt-5 block w-full text-sm text-[var(--muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--panel-soft)] file:px-3 file:py-2 file:text-[var(--text)]"/>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <label className="text-xs text-[var(--muted)]">Başlangıç <input type="date" value={syncFrom} onChange={(e) => setSyncFrom(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--line)] bg-black/20 p-2 text-sm text-[var(--text)]"/></label>
+            <label className="text-xs text-[var(--muted)]">Bitiş <input type="date" value={syncTo} onChange={(e) => setSyncTo(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--line)] bg-black/20 p-2 text-sm text-[var(--text)]"/></label>
+          </div>
+          <button onClick={syncMetricool} disabled={!!busy} className="mt-4 rounded-xl bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-black disabled:opacity-40">{busy === "sync" ? "Metricool'dan çekiliyor..." : "Metricool API ile doğrudan senkronize et"}</button>
+          <div className="my-4 border-t border-[var(--line)]"/>
+          <p className="text-xs text-[var(--muted)]">Alternatif: JSON dışa aktarım dosyası</p>
+          <input type="file" accept=".json,application/json" onChange={(e) => setMetricFile(e.target.files?.[0] || null)} className="mt-2 block w-full text-sm text-[var(--muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--panel-soft)] file:px-3 file:py-2 file:text-[var(--text)]"/>
           <button onClick={importMetricool} disabled={!metricFile || !!busy} className="mt-4 rounded-xl bg-[var(--gold)] px-4 py-3 text-sm font-semibold text-black disabled:opacity-40">{busy === "metric" ? "Aktarılıyor..." : "Metricool verisini aktar"}</button>
         </article>
       </section>
