@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
     const { data: metricRows, error } = await supabase.from("content_metric_snapshots")
       .select("reach,views,likes,comments,shares,saves,follows,avg_watch_seconds,retention_percent,skip_rate_percent,captured_at,content_items!inner(caption,permalink,content_type,published_at,user_id)")
-      .eq("user_id", user.id).order("captured_at", { ascending: false }).limit(100);
+      .eq("content_metric_snapshots.user_id", user.id).order("captured_at", { ascending: false }).limit(100);
     if (error) throw error;
     if (!metricRows?.length) return NextResponse.json({ error: "Analiz için henüz performans verisi yok. Önce Metricool verilerini içe aktarın." }, { status: 409 });
 
