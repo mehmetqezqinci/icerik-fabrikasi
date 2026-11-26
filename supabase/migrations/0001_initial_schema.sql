@@ -181,3 +181,19 @@ create index if not exists content_items_user_published_idx on public.content_it
 create index if not exists content_metrics_item_captured_idx on public.content_metric_snapshots(content_item_id, captured_at desc);
 create index if not exists account_metrics_account_date_idx on public.account_metric_snapshots(social_account_id, captured_on desc);
 create index if not exists field_activities_user_date_idx on public.field_activities(user_id, activity_date desc);
+
+create table if not exists public.legacy_imports (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  source_app text not null default 'Dilara Ceylan Content Factory V5',
+  source_version integer,
+  exported_at timestamptz,
+  imported_at timestamptz not null default now(),
+  payload_sha256 text not null,
+  payload jsonb not null,
+  import_summary jsonb not null default '{}'::jsonb,
+  unique(user_id, payload_sha256)
+);
+alter table public.legacy_imports enable row level security;
+create policy legacy_imports_owner_all on public.legacy_imports
+  for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
