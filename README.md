@@ -1,6 +1,6 @@
 # Dilara Ceylan Yardım Derneği — İçerik Fabrikası V6
 
-V6, eski V5 içerik fabrikasını koruyarak gerçek sosyal medya performans verilerini AI analiz motoruna bağlamak için geliştirilmektedir.
+V6, V5 verisini kaybetmeden korumak ve gerçek Instagram performans verilerini kaynak bilgisiyle AI analiz motoruna bağlamak için geliştirilmektedir.
 
 ## Geliştirme dalı
 `v6-foundation`
@@ -9,7 +9,7 @@ V6, eski V5 içerik fabrikasını koruyarak gerçek sosyal medya performans veri
 - Next.js + TypeScript
 - Supabase Auth + PostgreSQL + Row Level Security
 - OpenAI Responses API (varsayılan model: `gpt-6.2-sol`)
-- Metricool API (Instagram posts/reels)
+- Metricool dışa aktarımı / JSON veri paketi (ücretli Metricool API erişimi gerekmez)
 - Vercel
 
 ## Yerel kurulum
@@ -25,11 +25,8 @@ V6, eski V5 içerik fabrikasını koruyarak gerçek sosyal medya performans veri
 - `V6_ADMIN_EMAIL` — tek yönetici hesabının e-posta adresi
 - `OPENAI_API_KEY`
 - `OPENAI_ANALYSIS_MODEL` — varsayılan `gpt-6.2-sol`
-- `METRICOOL_API_TOKEN`
-- `METRICOOL_USER_ID`
-- `METRICOOL_BLOG_ID`
 
-Gerçek anahtarları GitHub'a koymayın. Yalnızca Vercel Environment Variables veya yerel `.env.local` kullanın.
+Gerçek anahtarları GitHub'a koymayın. Yalnızca Vercel Environment Variables veya yerel `.env.local` kullanın. ChatGPT aboneliği OpenAI API kullanım ücretini kapsamaz; API anahtarı ve faturalandırma ayrıca yapılandırılır.
 
 ## V5 verisini koruma
 1. V5 uygulamasını verilerin bulunduğu aynı tarayıcıda açın.
@@ -40,24 +37,26 @@ Gerçek anahtarları GitHub'a koymayın. Yalnızca Vercel Environment Variables 
 
 V5 tarayıcı verileri bu çalışma alanından doğrudan okunamaz; bu nedenle V5 arayüzünden JSON dışa aktarımı gerekir. V5 localStorage verisi silinmemelidir.
 
-## Metricool
-- Metricool API, Advanced ve Custom planlarında kullanılabilir. Free ve Starter planlarında API erişimi yoktur.
-- Token, Metricool > Account Settings > API bölümünden alınır.
-- Her istek `X-Mc-Auth` başlığında token, sorguda `userId` ve `blogId` kullanır.
-- V6 `/api/metricool/sync` endpoint'i resmi `/v2/analytics/posts/instagram` ve `/v2/analytics/reels/instagram` uçlarını çağırır.
-- Dashboard'da tarih aralığı seçip **Metricool API ile doğrudan senkronize et** düğmesini kullanın.
-- Erişim planı API içermiyorsa, V6 JSON içe aktarma yolu da kullanılabilir.
+## Instagram performans verisi
+- Metricool API veya ücretli Metricool paketi zorunlu değildir.
+- `/dashboard` sayfasına normalize edilmiş JSON performans paketi yüklenir.
+- Her kayıt `source` alanıyla etiketlenir. Metricool dışa aktarımı `metricool_export`, kullanıcının Excel tablosu `instagram_manual_excel` kaynağıyla saklanır.
+- Bilinmeyen değerler `null` kalır; sıfır olarak yorumlanmaz.
+- Kaynaklar arasında olası aynı paylaşım varsa, bağlantı veya kesin eşleşme olmadan otomatik birleştirme yapılmaz. AI analizinde kaynak farkı ve olası mükerrerlik açıkça belirtilir.
+- Bu geliştirme turunda Story ve haftalık dağıtım verileri kapsam dışıdır. Analiz yalnızca Reels ve kalıcı gönderileri kapsar.
+
+## Mevcut veri paketi
+Hazırlanan ilk paket: 36 Excel kaydı + 19 Metricool kaydı + 6 günlük hesap ölçümü. Excel aralığı 1 Ağustos–25 Kasım 2026; Metricool dönemi 1 Eylül–26 Kasım 2026. Kaynak dosyalar otomatik eşleştirilmemiştir. Paket içindeki notlar veri kalitesi ve kapsam sınırlamalarını açıklar.
 
 ## AI analiz akışı
-Metricool -> `content_items` + `content_metric_snapshots` -> `/api/ai/analyze` -> OpenAI Responses API -> `ai_analyses`.
+Instagram JSON -> `content_items` + `content_metric_snapshots` -> `/api/ai/analyze` -> OpenAI Responses API -> `ai_analyses`.
 
-AI'ya yalnızca onaylanmış dernek profil alanları ve performans/caption verileri gönderilir. V5'in ham yedek payload'ı doğrudan AI'ya gönderilmez. Eksik metrikler sıfır varsayılmaz.
+AI'ya yalnızca onaylanmış dernek profil alanları ve performans/caption verileri gönderilir. V5'in ham yedek payload'ı doğrudan AI'ya gönderilmez. Çocukların ve yardım alan kişilerin kimliğini açığa çıkaracak içerik önerileri engellenir.
 
 ## API uçları
 - `POST /api/migrate/v5` — V5 JSON yedeğini korur ve temel hafızayı aktarır.
-- `POST /api/metricool/sync` — Metricool API'den seçilen tarih aralığındaki Instagram gönderi ve Reels kayıtlarını çeker.
-- `POST /api/analytics/import` — normalize Metricool JSON içe aktarımı.
-- `POST /api/ai/analyze` — saklanan performans verileri üzerinden AI analizi.
+- `POST /api/analytics/import` — Metricool + manuel Excel normalize JSON paketini içe aktarır.
+- `POST /api/ai/analyze` — saklanan performans verileri üzerinden kaynak farkını koruyarak AI analizi yapar.
 
 ## Durum ve sınırlar
-Bu dalda uygulama temeli, ilk Supabase şeması, V5 backup preservation/import, Metricool sync endpoint'i ve OpenAI analiz endpoint'i oluşturuldu. Henüz Supabase projesi, Vercel ortam değişkenleri veya Metricool API token'ı yapılandırılmadı; bu nedenle uçtan uca canlı senkronizasyon ve üretim derlemesi doğrulanmış değildir.
+V6 temel arayüzü, Supabase şeması, V5 yedek koruma/aktarma, kaynak etiketli performans aktarımı ve AI analiz akışı kodlandı. Supabase projesi, Vercel ortam değişkenleri ve OpenAI API anahtarı henüz yapılandırılmadığı için canlı kullanım ve uçtan uca test tamamlanmış değildir.
