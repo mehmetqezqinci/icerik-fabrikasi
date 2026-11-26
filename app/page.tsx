@@ -19,9 +19,12 @@ export default function Home() {
             <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">İçerik & Büyüme <span className="text-[var(--gold)]">V6</span></h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Veriye dayalı içerik stratejisi, yapay zekâ destekli üretim ve sürdürülebilir sosyal medya büyümesi.</p>
           </div>
-          <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm">
-            <div className="text-[var(--muted)]">Proje durumu</div>
-            <div className="mt-1 flex items-center gap-2 font-medium"><span className="h-2 w-2 rounded-full bg-amber-400" /> Temel geliştirme başladı</div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a href="/login" className="rounded-xl bg-[var(--gold)] px-5 py-3 text-center text-sm font-semibold text-black">Yönetici girişi</a>
+            <div className="rounded-xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm">
+              <div className="text-[var(--muted)]">Proje durumu</div>
+              <div className="mt-1 flex items-center gap-2 font-medium"><span className="h-2 w-2 rounded-full bg-amber-400" /> Temel geliştirme başladı</div>
+            </div>
           </div>
         </header>
 
