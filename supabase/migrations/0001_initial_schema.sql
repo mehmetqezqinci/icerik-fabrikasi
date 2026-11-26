@@ -197,3 +197,9 @@ create table if not exists public.legacy_imports (
 alter table public.legacy_imports enable row level security;
 create policy legacy_imports_owner_all on public.legacy_imports
   for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Idempotent metric snapshots: repeated Metricool imports do not duplicate identical readings.
+alter table public.content_metric_snapshots add column if not exists snapshot_key text;
+create unique index if not exists content_metric_snapshots_item_key_uidx
+  on public.content_metric_snapshots(content_item_id, snapshot_key)
+  where snapshot_key is not null;
