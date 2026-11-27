@@ -20,18 +20,18 @@ export async function POST(request:Request){
    const source=item.source||"metricool_export";
    const metadata={...(item.metadata||{}),contentTitle:item.contentTitle||null,dataSource:source,durationSeconds:num(item.durationSeconds)};
    const contentRows=await sql`insert into content_items(user_id,social_account_id,external_content_id,platform,content_type,caption,permalink,published_at,metadata)
-    values(${ADMIN_USER_ID},${accountId},${item.externalId},'instagram',${item.type},${item.caption||null},${item.permalink||null},${item.publishedAt},${sql.json(metadata)})
+    values(${ADMIN_USER_ID},${accountId},${item.externalId},'instagram',${item.type},${item.caption||null},${item.permalink||null},${item.publishedAt},${sql.json(metadata as any)})
     on conflict(user_id,platform,external_content_id) do update set social_account_id=excluded.social_account_id,content_type=excluded.content_type,caption=excluded.caption,permalink=excluded.permalink,published_at=excluded.published_at,metadata=excluded.metadata returning id`;
    const metrics={reach:num(item.reach),views:num(item.views),likes:num(item.likes),comments:num(item.comments),shares:num(item.shares),saves:num(item.saves),follows:num(item.follows),avg_watch_seconds:num(item.avgWatchSeconds),retention_percent:num(item.retentionPercent),skip_rate_percent:num(item.skipRatePercent)};
    const snapshotKey=createHash("sha256").update(JSON.stringify({source,metrics})).digest("hex");
    await sql`insert into content_metric_snapshots(user_id,content_item_id,source,snapshot_key,reach,views,likes,comments,shares,saves,follows,avg_watch_seconds,retention_percent,skip_rate_percent,raw_metrics)
-    values(${ADMIN_USER_ID},${contentRows[0].id},${source},${snapshotKey},${metrics.reach},${metrics.views},${metrics.likes},${metrics.comments},${metrics.shares},${metrics.saves},${metrics.follows},${metrics.avg_watch_seconds},${metrics.retention_percent},${metrics.skip_rate_percent},${sql.json(item)})
+    values(${ADMIN_USER_ID},${contentRows[0].id},${source},${snapshotKey},${metrics.reach},${metrics.views},${metrics.likes},${metrics.comments},${metrics.shares},${metrics.saves},${metrics.follows},${metrics.avg_watch_seconds},${metrics.retention_percent},${metrics.skip_rate_percent},${sql.json(item as any)})
     on conflict(content_item_id,snapshot_key) where snapshot_key is not null do update set raw_metrics=excluded.raw_metrics`;
    saved++;
   }
   let accountSaved=0;
   for(const snap of body.accountSnapshots||[]){
-   if(!/^\d{4}-\d{2}-\d{2}$/.test(snap.date)) continue;
+   if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(snap.date)) continue;
    await sql`insert into account_metric_snapshots(user_id,social_account_id,captured_on,followers,reach,views,engaged_accounts,followers_gained,followers_lost)
     values(${ADMIN_USER_ID},${accountId},${snap.date},${num(snap.followers)},${num(snap.reach)},${num(snap.views)},${num(snap.engagedAccounts)},${num(snap.followersGained)},${num(snap.followersLost)})
     on conflict(social_account_id,captured_on) do update set followers=excluded.followers,reach=excluded.reach,views=excluded.views,engaged_accounts=excluded.engaged_accounts,followers_gained=excluded.followers_gained,followers_lost=excluded.followers_lost`;
