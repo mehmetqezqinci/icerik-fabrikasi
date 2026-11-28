@@ -10,5 +10,22 @@ const stations:FactoryStation[]=[
 {id:7,name:"Yayın & Öğrenme",description:"Yayın takvimi, A/B testleri ve yayın sonrası öğrenim döngüsünü kurar.",themes:["Haftalık yayın planı","Kapak testi","Kanca testi","Video süresi testi","Açıklama testi","Paylaşım saati deneyi","Seri devam kararı","İçerik tekrar kullanımı","Sonuç değerlendirme","Sonraki hafta planı"],angles:["Üç günlük mini plan yap","İki varyantı kıyasla","Kazananı tekrar üret","Zayıf sonucu teşhis et","Öğrenimi kaydet","Bir sonraki adımı seç","İçeriği farklı formata çevir","Seri takvimi oluştur","Yayın sonrası kontrol yap","Haftalık rapor hazırla"],formats:["Yayın takvimi","A/B deneyi","Haftalık değerlendirme"],goals:["Süreklilik","Öğrenme","Büyüme"],hooks:["Yayınlamak bitiş değil, öğrenmenin başlangıcı.","Bu hafta neyi test ediyoruz?","Sonuçtan bir sonraki fikre."],actions:["Bir seferde tek değişken test et; sonucu aynı ölçütle karşılaştır.","Yayın tarihini, formatı, kancayı ve sonuçları haftalık dosyada sakla.","Sonraki hafta için bir devam, bir iyileştirme ve bir yeni test seç."]}
 ];
 const titles=["Birlikte daha görünür","Görünmeyen emeğin izi","Bir soruyla başlayan hikâye","Mersin'den bir iyilik notu","Bir adım daha ileri","Küçük ayrıntı, büyük etki","Bugünün merak edilen konusu","Sahadan kısa bir not","Birlikte öğreniyoruz","Bir sonraki adım"];
-export const factoryStations=stations.map(s=>({...s,ideas:Array.from({length:100},(_,i)=>{const a=i%10,b=Math.floor(i/10);return {id:s.id+"-"+String(i+1).padStart(3,"0"),title:s.themes[b]+" · "+s.angles[a],hook:s.hooks[(a+b)%s.hooks.length],format:s.formats[(a+b)%s.formats.length],goal:s.goals[(a*3+b)%s.goals.length],execution:s.actions[(a+b)%s.actions.length]+" "+titles[(a+b)%titles.length]+".",shots:["Yakın plan detay","Sabit genel plan","Hızlı ara kesit","Ekran yazısı ve altyazı"].slice(0,2+(i%3)).join(" • "),cta:["Yorumlarda fikrini paylaş.","Bu içeriği ihtiyacı olabilecek biriyle paylaş.","Takipte kal; süreci birlikte izleyelim.","Destek ve gönüllülük yollarını profilden incele."][(a+b)%4],metric:["İlk 3 saniye tutma","Ortalama izlenme süresi","Paylaşım ve kaydetme","Profil ziyareti ve takip"][i%4]} as FactoryIdea}}));
+export const factoryStations=stations.map(s=>({
+ ...s,
+ ideas:Array.from({length:100},(_,i)=>{
+  const a=i%10,b=Math.floor(i/10);
+  const idea:FactoryIdea={
+   id:s.id+"-"+String(i+1).padStart(3,"0"),
+   title:s.themes[b]+" · "+s.angles[a],
+   hook:s.hooks[(a+b)%s.hooks.length],
+   format:s.formats[(a+b)%s.formats.length],
+   goal:s.goals[(a*3+b)%s.goals.length],
+   execution:s.actions[(a+b)%s.actions.length]+" "+titles[(a+b)%titles.length]+".",
+   shots:["Yakın plan detay","Sabit genel plan","Hızlı ara kesit","Ekran yazısı ve altyazı"].slice(0,2+(i%3)).join(" • "),
+   cta:["Yorumlarda fikrini paylaş.","Bu içeriği ihtiyacı olabilecek biriyle paylaş.","Takipte kal; süreci birlikte izleyelim.","Destek ve gönüllülük yollarını profilden incele."][(a+b)%4],
+   metric:["İlk 3 saniye tutma","Ortalama izlenme süresi","Paylaşım ve kaydetme","Profil ziyareti ve takip"][i%4]
+  };
+  return idea;
+ })
+}));
 export const stationList=factoryStations.map(({id,name,description,ideas})=>({id,name,description,count:ideas.length}));
